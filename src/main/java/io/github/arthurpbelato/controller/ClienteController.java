@@ -2,9 +2,11 @@ package io.github.arthurpbelato.controller;
 
 import io.github.arthurpbelato.model.Cliente;
 import io.github.arthurpbelato.repository.ClienteRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -52,5 +54,22 @@ public class ClienteController {
         Example example = Example.of(filtro, matcher);
         List<Cliente> clientes = clienteRepository.findAll(example);
         return ResponseEntity.ok(clientes);
+    }
+
+    @PutMapping("/{codigo}")
+    public ResponseEntity<Cliente> atualizar(@PathVariable BigInteger codigo,@RequestBody @Valid Cliente cliente){
+        Optional<Cliente> clienteOptional = clienteRepository.findById(codigo);
+        if(!clienteOptional.isPresent()) return ResponseEntity.notFound().build();
+        Cliente clienteExistente = clienteOptional.get();
+
+        BeanUtils.copyProperties(cliente, clienteExistente, "codCliente");
+        clienteRepository.save(clienteExistente);
+        return ResponseEntity.ok(clienteExistente);
+    }
+
+    @DeleteMapping("/{codigo}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remover(@PathVariable BigInteger codigo){
+        clienteRepository.deleteById(codigo);
     }
 }
